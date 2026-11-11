@@ -28,3 +28,5 @@ async function sendMessage(message) {
       };
    }
 }
+
+window.sendMessage = sendMessage;
