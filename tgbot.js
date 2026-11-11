@@ -1,5 +1,5 @@
 async function sendMessage(message) {
-   message = document.getElementById("msginput");
+   message = document.getElementById("msginput").value;
    try {
       const response = await fetch("/.netlify/functions/telegram", {
          method: "POST",
