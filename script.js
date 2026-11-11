@@ -36,7 +36,7 @@ async function updateDtekSchedule() {
       });
 
       const data = await response.json();
-      console.log(data);
+      // console.log(data);
 
       if (!response.ok || !data.success) {
          throw new Error(data.error || `HTTP ${response.status}`);
@@ -51,7 +51,7 @@ async function updateDtekSchedule() {
          year: "numeric",
       }).format(date);
 
-      const weekday = new Intl.DateTimeFormat("uk-UA", {
+      const weekday = new Intl.DateTimeFormat("ru-RU", {
          timeZone: "Europe/Kyiv",
          weekday: "long",
       }).format(date);
@@ -133,9 +133,11 @@ async function updateDtekSchedule() {
          contno += (period.end - period.start) / 60;
       }
 
-      console.log("Расписание на сегодня:");
-      console.table(rows);
+      // console.log("Расписание на сегодня:");
+      // console.table(rows);
 
+      console.group(`Статус отключений на ${weekday}, ${formattedDate}`);
+      console.log(`Всего без света: ${Math.floor(contno)} ч. ${Math.round((contno % 1) * 60)} мин.`);
       console.log("Периоды отключений:");
 
       for (const period of outagePeriods) {
@@ -148,12 +150,6 @@ async function updateDtekSchedule() {
             `${minutesToTime(period.start)}–${minutesToTime(period.end)} | ` + `${hours ? hours + " ч. " : ""}${minutes ? minutes + " мин." : ""}`
          );
       }
-
-      console.log(`Всего без света: ${Math.floor(contno)} ч. ${Math.round((contno % 1) * 60)} мин.`);
-
-      console.group(`Статус отключений на ${weekday}, ${formattedDate}`);
-      console.log(`Нет света на протяжении ${contno} часов\nПериоды отключений:`);
-      // console.log(nocalctime);
 
       console.groupEnd();
 
