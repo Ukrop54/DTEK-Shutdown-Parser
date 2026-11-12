@@ -87,20 +87,19 @@ async function sendMenu(BOT_TOKEN, chatId) {
       chat_id: chatId,
       text: "Информация: ",
       reply_markup: {
-         inline_keyboard: [
+         keyboard: [
             [
                {
-                  text: "Статус на сегодня",
-                  callback_data: "today",
+                  text: "Статус отключений",
                },
-            ],
-            [
                {
-                  text: "Расписание отключений",
-                  callback_data: "full",
+                  text: "Полный график",
                },
             ],
          ],
+
+         resize_keyboard: true,
+         is_persistent: true,
       },
    });
 }
@@ -140,6 +139,26 @@ exports.handler = async (event) => {
 
          if (text.startsWith("/start")) {
             await sendMenu(BOT_TOKEN, chatId);
+         } else if (text === "Статус отключений") {
+            await telegramRequest(BOT_TOKEN, "sendMessage", {
+               chat_id: chatId,
+               text: "status",
+            });
+         } else if (text === "Полный график") {
+            await telegramRequest(BOT_TOKEN, "sendMessage", {
+               chat_id: chatId,
+               text: "grafic",
+            });
+         } else if (text.startsWith("Тане: ")) {
+            await telegramRequest(BOT_TOKEN, "sendMessage", {
+               chat_id: "6351924630",
+               text: text.slice(6),
+            });
+         } else if (text.startsWith("Мне: ")) {
+            await telegramRequest(BOT_TOKEN, "sendMessage", {
+               chat_id: "1352317933",
+               text: text.slice(5),
+            });
          }
       }
 
