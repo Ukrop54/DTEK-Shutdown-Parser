@@ -357,14 +357,15 @@ async function updateDtekSchedule() {
 
    const statusText =
       `Статус отключений на ${weekday}, ${formattedDate}\n\n` +
+      `Сейчас Светы ${row.status}\n` +
       `Всего без света: ${hours} ч. ${minutes} мин.\n\n` +
-      `Периоды отключений:\n${periodsText}\n\n` +
+      `Отключения:\n${periodsText}\n\n` +
       `Последнее обновление: ${data.updates.fact}`;
 
    const scheduleText =
       `График на ${weekday}, ${formattedDate}\n` +
       `Адрес: ${data.address.city}, ${data.address.street}, ${data.address.house}\n` +
-      `Очередь: ${data.queue.name}\n\n` +
+      `(${data.queue.name})\n\n` +
       rows.map((row) => `${row.time} — ${row.status}`).join("\n") +
       `\n\nПоследнее обновление: ${data.updates.fact}`;
 
