@@ -63,6 +63,317 @@
 //    }
 // };
 
+const DTEK_CONFIG = {
+   city: "с-ще Мигаєве",
+   street: "вул. Молодіжна",
+   house: "2",
+   updateInterval: 5 * 60 * 1000,
+};
+
+if (window.dtekScheduleInterval) {
+   clearInterval(window.dtekScheduleInterval);
+}
+
+const statusNames = {
+   yes: "Есть",
+   no: "Нет",
+   first: "Нет первые 30 минут",
+   second: "Нет вторые 30 минут",
+   maybe: "Возможно отключение",
+   mfirst: "Возможно отключение первые 30 минут",
+   msecond: "Возможно отключение вторые 30 минут",
+};
+
+// async function updateDtekSchedule() {
+//    // console.log("Получаю актуальные данные ДТЭК...");
+
+//    try {
+//       const response = await fetch("https://dtek-tgparser.netlify.app/.netlify/functions/get-schedule", {
+//          method: "POST",
+//          headers: {
+//             "Content-Type": "application/json",
+//          },
+//          body: JSON.stringify({
+//             city: DTEK_CONFIG.city,
+//             street: DTEK_CONFIG.street,
+//             house: DTEK_CONFIG.house,
+//          }),
+//       });
+
+//       const data = await response.json();
+//       // console.log(data);
+
+//       if (!response.ok || !data.success) {
+//          throw new Error(data.error || `HTTP ${response.status}`);
+//       }
+
+//       const date = new Date(data.fact.date * 1000);
+
+//       const formattedDate = new Intl.DateTimeFormat("uk-UA", {
+//          timeZone: "Europe/Kyiv",
+//          day: "2-digit",
+//          month: "2-digit",
+//          year: "numeric",
+//       }).format(date);
+
+//       const weekday = new Intl.DateTimeFormat("ru-RU", {
+//          timeZone: "Europe/Kyiv",
+//          weekday: "long",
+//       }).format(date);
+
+//       // console.clear();
+
+//       // console.log("Адрес:", `${data.address.city}, ${data.address.street}, ${data.address.house}`);
+
+//       // console.log("Очередь:", data.queue.name);
+//       // console.log("Дата:", formattedDate);
+//       // console.log("День недели:", weekday);
+//       // console.log("Обновление ДТЭК:", data.updates.fact);
+
+//       const rows = [];
+//       const outageIntervals = [];
+
+//       let contno = 0;
+
+//       function timeToMinutes(time) {
+//          const [hours, minutes] = time.split(":").map(Number);
+//          return hours * 60 + minutes;
+//       }
+
+//       function minutesToTime(minutes) {
+//          const hours = Math.floor(minutes / 60);
+//          const mins = minutes % 60;
+
+//          return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+//       }
+
+//       for (let hour = 1; hour <= 24; hour++) {
+//          const key = String(hour);
+//          const status = data.fact.schedule?.[key];
+
+//          const time = data.timeZone?.[key];
+
+//          const start = timeToMinutes(time[1]);
+//          const end = start + 60;
+
+//          if (status === "no") {
+//             outageIntervals.push({
+//                start,
+//                end,
+//             });
+//          } else if (status === "first") {
+//             outageIntervals.push({
+//                start,
+//                end: start + 30,
+//             });
+//          } else if (status === "second") {
+//             outageIntervals.push({
+//                start: start + 30,
+//                end,
+//             });
+//          }
+
+//          rows.push({
+//             Время: `${time[1]}–${time[2]}`,
+//             Статус: statusNames[status] || status || "Нет данных",
+//          });
+//       }
+
+//       const outagePeriods = [];
+
+//       for (const interval of outageIntervals) {
+//          const lastPeriod = outagePeriods[outagePeriods.length - 1];
+
+//          if (lastPeriod && lastPeriod.end === interval.start) {
+//             lastPeriod.end = interval.end;
+//          } else {
+//             outagePeriods.push({
+//                start: interval.start,
+//                end: interval.end,
+//             });
+//          }
+//       }
+
+//       for (const period of outagePeriods) {
+//          contno += (period.end - period.start) / 60;
+//       }
+
+//       // console.log("Расписание на сегодня:");
+//       // console.table(rows);
+
+//       console.group(`Статус отключений на ${weekday}, ${formattedDate}`);
+//       console.log(`Всего без света: ${Math.floor(contno)} ч. ${Math.round((contno % 1) * 60)} мин.`);
+//       console.log("Периоды отключений:");
+
+//       for (const period of outagePeriods) {
+//          const duration = period.end - period.start;
+
+//          const hours = Math.floor(duration / 60);
+//          const minutes = duration % 60;
+
+//          console.log(
+//             `${minutesToTime(period.start)}–${minutesToTime(period.end)} | ` + `${hours ? hours + " ч. " : ""}${minutes ? minutes + " мин." : ""}`
+//          );
+//       }
+
+//       console.groupEnd();
+
+//       console.group(
+//          `График на ${weekday}, ${formattedDate} по адресу ${data.address.city}, ${data.address.street}, ${data.address.house} (${data.queue.name})`
+//       );
+//       console.table(rows);
+//       console.log(`Последнее обновление: ${data.updates.fact}`);
+//       console.groupEnd();
+//    } catch (error) {
+//       console.error("Ошибка получения расписания:", error);
+//    }
+// }
+
+// updateDtekSchedule();
+
+// window.dtekScheduleInterval = setInterval(updateDtekSchedule, DTEK_CONFIG.updateInterval);
+
+async function updateDtekSchedule() {
+   const response = await fetch("https://dtek-tgparser.netlify.app/.netlify/functions/get-schedule", {
+      method: "POST",
+      headers: {
+         "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+         city: DTEK_CONFIG.city,
+         street: DTEK_CONFIG.street,
+         house: DTEK_CONFIG.house,
+      }),
+   });
+
+   const data = await response.json();
+
+   if (!response.ok || !data.success) {
+      throw new Error(data.error || `HTTP ${response.status}`);
+   }
+
+   const date = new Date(data.fact.date * 1000);
+
+   const formattedDate = new Intl.DateTimeFormat("uk-UA", {
+      timeZone: "Europe/Kyiv",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+   }).format(date);
+
+   const weekday = new Intl.DateTimeFormat("ru-RU", {
+      timeZone: "Europe/Kyiv",
+      weekday: "long",
+   }).format(date);
+
+   function timeToMinutes(time) {
+      const [hours, minutes] = time.split(":").map(Number);
+      return hours * 60 + minutes;
+   }
+
+   function minutesToTime(minutes) {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+
+      return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+   }
+
+   const rows = [];
+   const outageIntervals = [];
+
+   for (let hour = 1; hour <= 24; hour++) {
+      const key = String(hour);
+
+      const status = data.fact.schedule?.[key];
+      const time = data.timeZone?.[key];
+
+      if (!time) continue;
+
+      const start = timeToMinutes(time[1]);
+      const end = start + 60;
+
+      if (status === "no") {
+         outageIntervals.push({ start, end });
+      } else if (status === "first") {
+         outageIntervals.push({
+            start,
+            end: start + 30,
+         });
+      } else if (status === "second") {
+         outageIntervals.push({
+            start: start + 30,
+            end,
+         });
+      }
+
+      rows.push({
+         time: `${time[1]}–${time[2]}`,
+         status: statusNames[status] || status || "Нет данных",
+      });
+   }
+
+   const outagePeriods = [];
+
+   for (const interval of outageIntervals) {
+      const lastPeriod = outagePeriods[outagePeriods.length - 1];
+
+      if (lastPeriod && lastPeriod.end === interval.start) {
+         lastPeriod.end = interval.end;
+      } else {
+         outagePeriods.push({
+            start: interval.start,
+            end: interval.end,
+         });
+      }
+   }
+
+   let totalMinutes = 0;
+
+   for (const period of outagePeriods) {
+      totalMinutes += period.end - period.start;
+   }
+
+   const hours = Math.floor(totalMinutes / 60);
+   const minutes = totalMinutes % 60;
+
+   let periodsText = "";
+
+   if (outagePeriods.length === 0) {
+      periodsText = "Отключений не запланировано.";
+   } else {
+      periodsText = outagePeriods
+         .map((period) => {
+            const duration = period.end - period.start;
+
+            const h = Math.floor(duration / 60);
+            const m = duration % 60;
+
+            const durationText = `${h ? h + " ч. " : ""}${m ? m + " мин." : ""}`;
+
+            return `${minutesToTime(period.start)}–${minutesToTime(period.end)} | ${durationText}`;
+         })
+         .join("\n");
+   }
+
+   const statusText =
+      `Статус отключений на ${weekday}, ${formattedDate}\n\n` +
+      `Всего без света: ${hours} ч. ${minutes} мин.\n\n` +
+      `Периоды отключений:\n${periodsText}\n\n` +
+      `Последнее обновление: ${data.updates.fact}`;
+
+   const scheduleText =
+      `График на ${weekday}, ${formattedDate}\n` +
+      `Адрес: ${data.address.city}, ${data.address.street}, ${data.address.house}\n` +
+      `Очередь: ${data.queue.name}\n\n` +
+      rows.map((row) => `${row.time} — ${row.status}`).join("\n") +
+      `\n\nПоследнее обновление: ${data.updates.fact}`;
+
+   return {
+      statusText,
+      scheduleText,
+   };
+}
+
 async function telegramRequest(BOT_TOKEN, method, data) {
    const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${method}`, {
       method: "POST",
@@ -139,16 +450,6 @@ exports.handler = async (event) => {
 
          if (text.startsWith("/start")) {
             await sendMenu(BOT_TOKEN, chatId);
-         } else if (text === "Статус отключений") {
-            await telegramRequest(BOT_TOKEN, "sendMessage", {
-               chat_id: chatId,
-               text: "status",
-            });
-         } else if (text === "Полный график") {
-            await telegramRequest(BOT_TOKEN, "sendMessage", {
-               chat_id: chatId,
-               text: "grafic",
-            });
          } else if (text.startsWith("Тане: ")) {
             await telegramRequest(BOT_TOKEN, "sendMessage", {
                chat_id: "6351924630",
@@ -160,31 +461,49 @@ exports.handler = async (event) => {
                text: text.slice(5),
             });
          }
-      }
+      } else if (text === "Статус отключений" || text === "Полный график") {
+         try {
+            const schedule = await updateDtekSchedule();
 
-      if (update.callback_query) {
-         const callback = update.callback_query;
-         const chatId = callback.message.chat.id;
-         const callbackId = callback.id;
+            const replyText = text === "Статус отключений" ? schedule.statusText : schedule.scheduleText;
 
-         await telegramRequest(BOT_TOKEN, "answerCallbackQuery", {
-            callback_query_id: callbackId,
-         });
-
-         if (callback.data === "today") {
             await telegramRequest(BOT_TOKEN, "sendMessage", {
                chat_id: chatId,
-               text: "отключения сегодня",
+               text: replyText,
             });
-         }
+         } catch (error) {
+            console.error("Ошибка получения расписания:", error);
 
-         if (callback.data === "full") {
             await telegramRequest(BOT_TOKEN, "sendMessage", {
                chat_id: chatId,
-               text: "полное расписание",
+               text: "Не удалось получить расписание отключений. Попробуйте позже.",
             });
          }
       }
+
+      // if (update.callback_query) {
+      //    const callback = update.callback_query;
+      //    const chatId = callback.message.chat.id;
+      //    const callbackId = callback.id;
+
+      //    await telegramRequest(BOT_TOKEN, "answerCallbackQuery", {
+      //       callback_query_id: callbackId,
+      //    });
+
+      //    if (callback.data === "today") {
+      //       await telegramRequest(BOT_TOKEN, "sendMessage", {
+      //          chat_id: chatId,
+      //          text: "отключения сегодня",
+      //       });
+      //    }
+
+      //    if (callback.data === "full") {
+      //       await telegramRequest(BOT_TOKEN, "sendMessage", {
+      //          chat_id: chatId,
+      //          text: "полное расписание",
+      //       });
+      //    }
+      // }
 
       return {
          statusCode: 200,
