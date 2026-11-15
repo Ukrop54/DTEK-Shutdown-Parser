@@ -70,9 +70,9 @@ const DTEK_CONFIG = {
    updateInterval: 5 * 60 * 1000,
 };
 
-if (window.dtekScheduleInterval) {
-   clearInterval(window.dtekScheduleInterval);
-}
+// if (window.dtekScheduleInterval) {
+//    clearInterval(window.dtekScheduleInterval);
+// }
 
 const statusNames = {
    yes: "Есть",
