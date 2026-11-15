@@ -355,9 +355,17 @@ async function updateDtekSchedule() {
          .join("\n");
    }
 
+   const curr = Number(
+      new Intl.DateTimeFormat("en-GB", {
+         timeZone: "Europe/Kyiv",
+         hour: "2-digit",
+         hourCycle: "h23",
+      }).format(new Date())
+   );
+
    const statusText =
       `Статус отключений на ${weekday}, ${formattedDate}\n\n` +
-      `Сейчас Светы ${data.fact.schedule?.[hours]}\n` +
+      `Сейчас Светы ${statusNames[data.fact.schedule?.[String(curr + 1)]]}\n` +
       `Всего без света: ${hours} ч. ${minutes} мин.\n\n` +
       `Отключения:\n${periodsText}\n\n` +
       `Последнее обновление: ${data.updates.fact}`;
