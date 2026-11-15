@@ -450,6 +450,24 @@ exports.handler = async (event) => {
 
          if (text.startsWith("/start")) {
             await sendMenu(BOT_TOKEN, chatId);
+         } else if (text === "Статус отключений" || text === "Полный график") {
+            try {
+               const schedule = await updateDtekSchedule();
+
+               const replyText = text === "Статус отключений" ? schedule.statusText : schedule.scheduleText;
+
+               await telegramRequest(BOT_TOKEN, "sendMessage", {
+                  chat_id: chatId,
+                  text: replyText,
+               });
+            } catch (error) {
+               console.error("Ошибка получения расписания:", error);
+
+               await telegramRequest(BOT_TOKEN, "sendMessage", {
+                  chat_id: chatId,
+                  text: `Ошибка ${error}`,
+               });
+            }
          } else if (text.startsWith("Тане: ")) {
             await telegramRequest(BOT_TOKEN, "sendMessage", {
                chat_id: "6351924630",
@@ -459,24 +477,6 @@ exports.handler = async (event) => {
             await telegramRequest(BOT_TOKEN, "sendMessage", {
                chat_id: "1352317933",
                text: text.slice(5),
-            });
-         }
-      } else if (text === "Статус отключений" || text === "Полный график") {
-         try {
-            const schedule = await updateDtekSchedule();
-
-            const replyText = text === "Статус отключений" ? schedule.statusText : schedule.scheduleText;
-
-            await telegramRequest(BOT_TOKEN, "sendMessage", {
-               chat_id: chatId,
-               text: replyText,
-            });
-         } catch (error) {
-            console.error("Ошибка получения расписания:", error);
-
-            await telegramRequest(BOT_TOKEN, "sendMessage", {
-               chat_id: chatId,
-               text: "Не удалось получить расписание отключений. Попробуйте позже.",
             });
          }
       }
