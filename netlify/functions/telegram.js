@@ -357,7 +357,7 @@ async function updateDtekSchedule() {
 
    const statusText =
       `Статус отключений на ${weekday}, ${formattedDate}\n\n` +
-      `Сейчас Светы ${row.status}\n` +
+      `Сейчас Светы ${data.fact.schedule?.[hours]}\n` +
       `Всего без света: ${hours} ч. ${minutes} мин.\n\n` +
       `Отключения:\n${periodsText}\n\n` +
       `Последнее обновление: ${data.updates.fact}`;
