@@ -355,17 +355,40 @@ async function updateDtekSchedule() {
          .join("\n");
    }
 
-   const curr = Number(
-      new Intl.DateTimeFormat("en-GB", {
-         timeZone: "Europe/Kyiv",
-         hour: "2-digit",
-         hourCycle: "h23",
-      }).format(new Date())
-   );
+   const now = new Date();
+
+   const curr = {
+      hour: Number(
+         new Intl.DateTimeFormat("en-GB", {
+            timeZone: "Europe/Kyiv",
+            hour: "2-digit",
+            hourCycle: "h23",
+         }).format(now)
+      ),
+
+      minute: Number(
+         new Intl.DateTimeFormat("en-GB", {
+            timeZone: "Europe/Kyiv",
+            minute: "2-digit",
+         }).format(now)
+      ),
+   };
+
+   const currstatusraw = data.fact.schedule?.[String(curr.hour + 1)];
+
+   let currstatus = "";
+
+   if (currstatusraw.includes("первые")) {
+      currstatus = curr.minute < 30 ? "Нет" : "Есть";
+   } else if (currstatusraw.includes("вторые")) {
+      currstatus = curr.minute < 30 ? "Есть" : "Нет";
+   } else {
+      currstatus = currstatusraw;
+   }
 
    const statusText =
       `Статус отключений на ${weekday}, ${formattedDate}\n\n` +
-      `Сейчас Светы ${statusNames[data.fact.schedule?.[String(curr + 1)]]}\n` +
+      `Сейчас Светы ${currstatus}\n` +
       `Всего без света: ${hours} ч. ${minutes} мин.\n\n` +
       `Отключения:\n${periodsText}\n\n` +
       `Последнее обновление: ${data.updates.fact}`;
