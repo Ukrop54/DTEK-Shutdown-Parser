@@ -378,9 +378,9 @@ async function updateDtekSchedule() {
 
    let currstatus = "";
 
-   if (currstatusraw.includes("первые")) {
+   if (currstatusraw === "first") {
       currstatus = curr.minute < 30 ? "Нет" : "Есть";
-   } else if (currstatusraw.includes("вторые")) {
+   } else if (currstatusraw === "second") {
       currstatus = curr.minute < 30 ? "Есть" : "Нет";
    } else {
       currstatus = currstatusraw;
