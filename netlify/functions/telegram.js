@@ -436,7 +436,6 @@ async function telegramRequest(BOT_TOKEN, method, data) {
       headers: {
          "Content-Type": "application/json",
       },
-      parse_mode: "HTML",
       body: JSON.stringify(data),
    });
    console.log(data);
@@ -454,6 +453,8 @@ async function sendMenu(BOT_TOKEN, chatId) {
    return telegramRequest(BOT_TOKEN, "sendMessage", {
       chat_id: chatId,
       text: "Информация: ",
+      parse_mode: "HTML",
+
       reply_markup: {
          keyboard: [
             [
