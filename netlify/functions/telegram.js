@@ -379,11 +379,11 @@ async function updateDtekSchedule() {
    let currstatus = "";
 
    if (currstatusraw === "first") {
-      currstatus = curr.minute < 30 ? "Нет" : "Есть";
+      currstatus = curr.minute < 30 ? "нет" : "есть";
    } else if (currstatusraw === "second") {
-      currstatus = curr.minute < 30 ? "Есть" : "Нет";
+      currstatus = curr.minute < 30 ? "есть" : "нет";
    } else {
-      currstatus = currstatusraw;
+      currstatus = statusNames[currstatusraw].toLoverCase();
    }
 
    const statusText =
