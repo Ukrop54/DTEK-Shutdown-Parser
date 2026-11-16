@@ -414,9 +414,9 @@ async function updateDtekSchedule() {
             let formattedTime = row.time;
 
             if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
-               formattedTime = `*${row.time}*`;
+               formattedTime = `<b>${row.time}</b>`;
             } else if (currentMinutes >= endMinutes) {
-               formattedTime = `~${row.time}~`;
+               formattedTime = `<s>${row.time}</s>`;
             }
 
             return `${formattedTime} — ${row.status}`;
@@ -436,6 +436,7 @@ async function telegramRequest(BOT_TOKEN, method, data) {
       headers: {
          "Content-Type": "application/json",
       },
+      parse_mode: "HTML",
       body: JSON.stringify(data),
    });
    console.log(data);
