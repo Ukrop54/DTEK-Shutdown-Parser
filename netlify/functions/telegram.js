@@ -383,7 +383,7 @@ async function updateDtekSchedule() {
    } else if (currstatusraw === "second") {
       currstatus = curr.minute < 30 ? "есть" : "нет";
    } else {
-      currstatus = statusNames[currstatusraw].toLoverCase();
+      currstatus = statusNames[currstatusraw];
    }
 
    const statusText =
