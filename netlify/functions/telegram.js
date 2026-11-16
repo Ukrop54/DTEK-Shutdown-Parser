@@ -401,7 +401,7 @@ async function updateDtekSchedule() {
       // rows.map((row) => `${row.time} — ${row.status}`).join("\n") +
       rows
          .map((row) => {
-            const [start, end] = row.time.split(" – ");
+            const [start, end] = row.time.split("–");
 
             const toMinutes = (time) => {
                const [h, m] = time.split(":").map(Number);
