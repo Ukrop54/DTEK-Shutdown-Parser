@@ -421,7 +421,8 @@ async function updateDtekSchedule() {
 
             return `${formattedTime} — ${row.status}`;
          })
-         .join("\n")`\n\nПоследнее обновление: ${data.updates.fact}`;
+         .join("\n") +
+      `\n\nПоследнее обновление: ${data.updates.fact}`;
 
    return {
       statusText,
