@@ -373,6 +373,7 @@ async function updateDtekSchedule() {
          }).format(now)
       ),
    };
+   const currentMinutes = curr.hour * 60 + curr.minute;
 
    const currstatusraw = data.fact.schedule?.[String(curr.hour + 1)];
 
@@ -397,8 +398,30 @@ async function updateDtekSchedule() {
       `График на ${weekday}, ${formattedDate}\n` +
       `Адрес: ${data.address.city}, ${data.address.street}, ${data.address.house}\n` +
       `(${data.queue.name})\n\n` +
-      rows.map((row) => `${row.time} — ${row.status}`).join("\n") +
-      `\n\nПоследнее обновление: ${data.updates.fact}`;
+      // rows.map((row) => `${row.time} — ${row.status}`).join("\n") +
+      rows
+         .map((row) => {
+            const [start, end] = row.time.split(" – ");
+
+            const toMinutes = (time) => {
+               const [h, m] = time.split(":").map(Number);
+               return h * 60 + m;
+            };
+
+            const startMinutes = toMinutes(start);
+            const endMinutes = toMinutes(end);
+
+            let formattedTime = row.time;
+
+            if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+               formattedTime = `*${row.time}*`;
+            } else if (currentMinutes >= endMinutes) {
+               formattedTime = `~${row.time}~`;
+            }
+
+            return `${formattedTime} — ${row.status}`;
+         })
+         .join("\n")`\n\nПоследнее обновление: ${data.updates.fact}`;
 
    return {
       statusText,
