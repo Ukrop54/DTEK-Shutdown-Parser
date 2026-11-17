@@ -362,6 +362,9 @@ async function updateDtekSchedule() {
 
    let currstatus = "";
 
+   // let whensd = [];
+   // const nextsd = currentMinutes -
+
    if (outagePeriods.length === 0) {
       periodsText = "Отключений не запланировано.";
    } else {
@@ -372,13 +375,22 @@ async function updateDtekSchedule() {
             const h = Math.floor(duration / 60);
             const m = duration % 60;
 
-            const durationText = `${h ? h + " ч. " : ""}${m ? m + " мин." : ""}`;
+            // const durationText = `${h ? h + " ч. " : ""}${m ? m + " мин." : ""}`;
+            function durationText(h, m) {
+               return `${h ? h + " ч. " : ""}${m ? m + " мин." : ""}`;
+            }
+
+            const [wh, wm] = minutesToTime(currentMinutes - (Math.floor(period.start / 60) + (period.start % 60))).split(":");
+
+            const periodText = `${minutesToTime(period.start)}–${minutesToTime(period.end)} | ${durationText(h, m)} (через: ${durationText(wh, wm)})`;
 
             if (currentMinutes >= period.start && currentMinutes < period.end) {
-               return `<b>${minutesToTime(period.start)}–${minutesToTime(period.end)} | ${durationText}</b>`;
+               return `<b>${periodText}</b>`;
             } else if (currentMinutes >= period.end) {
-               return `<s>${minutesToTime(period.start)}–${minutesToTime(period.end)} | ${durationText}</s>`;
+               return `<s>${periodText}</s>`;
             }
+
+            return periodText;
          })
          .join("\n");
    }
@@ -394,7 +406,7 @@ async function updateDtekSchedule() {
    const statusText =
       `Статус отключений на ${weekday}, ${formattedDate}\n\n` +
       `Сейчас свет <b>${currstatus}</b>\n` +
-      `Всего без света: <b>${hours} ч. ${minutes} мин.</b>\n\n` +
+      `Следующее отключение через: ${nextsd}``Всего без света: <b>${hours} ч. ${minutes} мин.</b>\n\n` +
       `Отключения:\n${periodsText}\n\n` +
       `Последнее обновление: ${data.updates.fact}`;
 
@@ -405,7 +417,7 @@ async function updateDtekSchedule() {
       // rows.map((row) => `${row.time} — ${row.status}`).join("\n") +
       rows
          .map((row) => {
-            const [start, end] = row.time.split("–");
+            const [start, end] = row.time.split("–").map((t) => t.trim());
 
             // const toMinutes = (time) => {
             //    const [h, m] = time.split(":").map(Number);
@@ -413,7 +425,7 @@ async function updateDtekSchedule() {
             // };
 
             const startMinutes = timeToMinutes(start);
-            const endMinutes = timeToMinutes(end);
+            const endMinutes = end === "00:00" ? 1440 : timeToMinutes(end);
 
             let formattedTime = row.time;
 
