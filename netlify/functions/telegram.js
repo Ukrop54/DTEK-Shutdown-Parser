@@ -336,34 +336,33 @@ async function updateDtekSchedule() {
    const hours = Math.floor(totalMinutes / 60);
    const minutes = totalMinutes % 60;
 
+   function hmformatting(a) {
+      const h = Math.floor(a / 60);
+      const m = a % 60;
+      return { h, m };
+   }
+
+   function hmTextFormat(h, m) {
+      const parts = [];
+
+      if (h) parts.push(`${h} ч.`);
+      if (m) parts.push(`${m} мин.`);
+
+      return parts.join(" ") || "меньше минуты";
+   }
+
+   const nextsdPeriod = outagePeriods.find((period) => period.start > currentMinutes);
+
+   let nextsd = "Сегодня отключений больше не ожидается";
+
+   if (nextsdPeriod) {
+      const waitm = nextsdPeriod.start - currentMinutes;
+      const { h, m } = hmformatting(waitm);
+
+      nextsd = hmTextFormat(h, m);
+   }
+
    let periodsText = "";
-
-   const now = new Date();
-
-   const curr = {
-      hour: Number(
-         new Intl.DateTimeFormat("en-GB", {
-            timeZone: "Europe/Kyiv",
-            hour: "2-digit",
-            hourCycle: "h23",
-         }).format(now)
-      ),
-
-      minute: Number(
-         new Intl.DateTimeFormat("en-GB", {
-            timeZone: "Europe/Kyiv",
-            minute: "2-digit",
-         }).format(now)
-      ),
-   };
-   const currentMinutes = curr.hour * 60 + curr.minute;
-
-   const currstatusraw = data.fact.schedule?.[String(curr.hour + 1)];
-
-   let currstatus = "";
-
-   // let whensd = [];
-   // const nextsd = currentMinutes -
 
    if (outagePeriods.length === 0) {
       periodsText = "Отключений не запланировано.";
@@ -371,31 +370,13 @@ async function updateDtekSchedule() {
       periodsText = outagePeriods
          .map((period) => {
             const duration = period.end - period.start;
-
-            function hmformatting(a) {
-               const h = Math.floor(a / 60);
-               const m = a % 60;
-               return { h, m };
-            }
-
-            // const h = Math.floor(duration / 60);
-            // const m = duration % 60;
-
             const { h, m } = hmformatting(duration);
 
-            // const durationText = `${h ? h + " ч. " : ""}${m ? m + " мин." : ""}`;
-            function hmTextFormat(h, m) {
-               return `${h ? h + " ч. " : ""}${m ? m + " мин." : "" || "Сейчас"}`;
-            }
-
-            const periodText = `${minutesToTime(period.start)}–${minutesToTime(period.end)} | ${hmTextFormat(h, m)})`;
+            let periodText = `${minutesToTime(period.start)}–${minutesToTime(period.end)} | ${hmTextFormat(h, m)}`;
 
             if (currentMinutes < period.start) {
                const waitm = period.start - currentMinutes;
-
-               // const wh = Math.floor(waitm / 60);
-               // const wm = waitm % 60;
-               const { wh, wm } = hmformatting(waitm);
+               const { h: wh, m: wm } = hmformatting(waitm);
 
                periodText += ` (через ${hmTextFormat(wh, wm)})`;
             }
@@ -422,7 +403,8 @@ async function updateDtekSchedule() {
    const statusText =
       `Статус отключений на ${weekday}, ${formattedDate}\n\n` +
       `Сейчас свет <b>${currstatus}</b>\n` +
-      `Следующее отключение через: ${nextsd}``Всего без света: <b>${hours} ч. ${minutes} мин.</b>\n\n` +
+      `Следующее отключение через: <b>${nextsd}</b>` +
+      `Всего без света: <b>${hours} ч. ${minutes} мин.</b>\n\n` +
       `Отключения:\n${periodsText}\n\n` +
       `Последнее обновление: ${data.updates.fact}`;
 
