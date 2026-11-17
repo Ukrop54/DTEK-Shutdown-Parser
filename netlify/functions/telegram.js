@@ -267,8 +267,8 @@ async function updateDtekSchedule() {
    }).format(date);
 
    function timeToMinutes(time) {
-      const [hours, minutes] = time.split(":").map(Number);
-      return hours * 60 + minutes;
+      const [h, m] = time.split(":").map(Number);
+      return h * 60 + m;
    }
 
    function minutesToTime(minutes) {
@@ -338,23 +338,6 @@ async function updateDtekSchedule() {
 
    let periodsText = "";
 
-   if (outagePeriods.length === 0) {
-      periodsText = "Отключений не запланировано.";
-   } else {
-      periodsText = outagePeriods
-         .map((period) => {
-            const duration = period.end - period.start;
-
-            const h = Math.floor(duration / 60);
-            const m = duration % 60;
-
-            const durationText = `${h ? h + " ч. " : ""}${m ? m + " мин." : ""}`;
-
-            return `${minutesToTime(period.start)}–${minutesToTime(period.end)} | ${durationText}`;
-         })
-         .join("\n");
-   }
-
    const now = new Date();
 
    const curr = {
@@ -379,6 +362,27 @@ async function updateDtekSchedule() {
 
    let currstatus = "";
 
+   if (outagePeriods.length === 0) {
+      periodsText = "Отключений не запланировано.";
+   } else {
+      periodsText = outagePeriods
+         .map((period) => {
+            const duration = period.end - period.start;
+
+            const h = Math.floor(duration / 60);
+            const m = duration % 60;
+
+            const durationText = `${h ? h + " ч. " : ""}${m ? m + " мин." : ""}`;
+
+            if (currentMinutes >= period.start && currentMinutes < period.end) {
+               return `<b>${minutesToTime(period.start)}–${minutesToTime(period.end)} | ${durationText}</b>`;
+            } else if (currentMinutes >= period.end) {
+               return `<s>${minutesToTime(period.start)}–${minutesToTime(period.end)} | ${durationText}</s>`;
+            }
+         })
+         .join("\n");
+   }
+
    if (currstatusraw === "first") {
       currstatus = curr.minute < 30 ? "нет" : "есть";
    } else if (currstatusraw === "second") {
@@ -390,7 +394,7 @@ async function updateDtekSchedule() {
    const statusText =
       `Статус отключений на ${weekday}, ${formattedDate}\n\n` +
       `Сейчас свет <b>${currstatus}</b>\n` +
-      `Всего без света: ${hours} ч. ${minutes} мин.\n\n` +
+      `Всего без света: <b>${hours} ч. ${minutes} мин.</b>\n\n` +
       `Отключения:\n${periodsText}\n\n` +
       `Последнее обновление: ${data.updates.fact}`;
 
@@ -403,13 +407,13 @@ async function updateDtekSchedule() {
          .map((row) => {
             const [start, end] = row.time.split("–");
 
-            const toMinutes = (time) => {
-               const [h, m] = time.split(":").map(Number);
-               return h * 60 + m;
-            };
+            // const toMinutes = (time) => {
+            //    const [h, m] = time.split(":").map(Number);
+            //    return h * 60 + m;
+            // };
 
-            const startMinutes = toMinutes(start);
-            const endMinutes = toMinutes(end);
+            const startMinutes = timeToMinutes(start);
+            const endMinutes = timeToMinutes(end);
 
             let formattedTime = row.time;
 
