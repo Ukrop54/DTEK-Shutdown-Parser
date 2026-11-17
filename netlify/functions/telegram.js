@@ -372,17 +372,33 @@ async function updateDtekSchedule() {
          .map((period) => {
             const duration = period.end - period.start;
 
-            const h = Math.floor(duration / 60);
-            const m = duration % 60;
-
-            // const durationText = `${h ? h + " ч. " : ""}${m ? m + " мин." : ""}`;
-            function durationText(h, m) {
-               return `${h ? h + " ч. " : ""}${m ? m + " мин." : ""}`;
+            function hmformatting(a) {
+               const h = Math.floor(a / 60);
+               const m = a % 60;
+               return { h, m };
             }
 
-            const [wh, wm] = minutesToTime(currentMinutes - (Math.floor(period.start / 60) + (period.start % 60))).split(":");
+            // const h = Math.floor(duration / 60);
+            // const m = duration % 60;
 
-            const periodText = `${minutesToTime(period.start)}–${minutesToTime(period.end)} | ${durationText(h, m)} (через: ${durationText(wh, wm)})`;
+            const { h, m } = hmformatting(duration);
+
+            // const durationText = `${h ? h + " ч. " : ""}${m ? m + " мин." : ""}`;
+            function hmTextFormat(h, m) {
+               return `${h ? h + " ч. " : ""}${m ? m + " мин." : "" || "Сейчас"}`;
+            }
+
+            const periodText = `${minutesToTime(period.start)}–${minutesToTime(period.end)} | ${hmTextFormat(h, m)})`;
+
+            if (currentMinutes < period.start) {
+               const waitm = period.start - currentMinutes;
+
+               // const wh = Math.floor(waitm / 60);
+               // const wm = waitm % 60;
+               const { wh, wm } = hmformatting(waitm);
+
+               periodText += ` (через ${hmTextFormat(wh, wm)})`;
+            }
 
             if (currentMinutes >= period.start && currentMinutes < period.end) {
                return `<b>${periodText}</b>`;
