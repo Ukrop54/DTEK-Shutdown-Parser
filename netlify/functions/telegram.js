@@ -433,6 +433,7 @@ async function updateDtekSchedule() {
 async function telegramRequest(BOT_TOKEN, method, data) {
    const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/${method}`, {
       method: "POST",
+      parse_mode: "HTML",
       headers: {
          "Content-Type": "application/json",
       },
@@ -453,7 +454,6 @@ async function sendMenu(BOT_TOKEN, chatId) {
    return telegramRequest(BOT_TOKEN, "sendMessage", {
       chat_id: chatId,
       text: "Информация: ",
-      parse_mode: "HTML",
 
       reply_markup: {
          keyboard: [
