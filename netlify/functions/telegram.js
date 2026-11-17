@@ -266,6 +266,31 @@ async function updateDtekSchedule() {
       weekday: "long",
    }).format(date);
 
+   const now = new Date();
+
+   const curr = {
+      hour: Number(
+         new Intl.DateTimeFormat("en-GB", {
+            timeZone: "Europe/Kyiv",
+            hour: "2-digit",
+            hourCycle: "h23",
+         }).format(now)
+      ),
+
+      minute: Number(
+         new Intl.DateTimeFormat("en-GB", {
+            timeZone: "Europe/Kyiv",
+            minute: "2-digit",
+         }).format(now)
+      ),
+   };
+
+   const currentMinutes = curr.hour * 60 + curr.minute;
+
+   const currstatusraw = data.fact.schedule?.[String(curr.hour + 1)];
+
+   let currstatus = "";
+
    function timeToMinutes(time) {
       const [h, m] = time.split(":").map(Number);
       return h * 60 + m;
@@ -403,7 +428,7 @@ async function updateDtekSchedule() {
    const statusText =
       `Статус отключений на ${weekday}, ${formattedDate}\n\n` +
       `Сейчас свет <b>${currstatus}</b>\n` +
-      `Следующее отключение через: <b>${nextsd}</b>` +
+      `Следующее отключение через: <b>${nextsd}</b>\n` +
       `Всего без света: <b>${hours} ч. ${minutes} мин.</b>\n\n` +
       `Отключения:\n${periodsText}\n\n` +
       `Последнее обновление: ${data.updates.fact}`;
