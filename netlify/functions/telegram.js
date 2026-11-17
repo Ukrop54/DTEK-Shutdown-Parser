@@ -378,7 +378,7 @@ async function updateDtekSchedule() {
 
    const nextsdPeriod = outagePeriods.find((period) => period.start > currentMinutes);
 
-   let nextsd = "Сегодня отключений больше не ожидается";
+   let nextsd = "Не ожидается";
 
    if (nextsdPeriod) {
       const waitm = nextsdPeriod.start - currentMinutes;
