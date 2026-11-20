@@ -67,6 +67,62 @@ function getMeta(html, name) {
    return null;
 }
 
+async function fetchDtekData(retries = 3) {
+   let lastError;
+   let lastHtml = "";
+   let pageResponse;
+
+   for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+         pageResponse = await fetch(PAGE_URL, {
+            headers: {
+               "User-Agent": "Mozilla/5.0",
+               Accept: "text/html,application/xhtml+xml",
+               "Accept-Language": "uk-UA,uk;q=0.9",
+            },
+         });
+
+         if (!pageResponse.ok) {
+            throw new Error(`ДТЭК вернул HTTP ${pageResponse.status}`);
+         }
+
+         lastHtml = await pageResponse.text();
+
+         const streets = extractObject(lastHtml, "streets");
+         const preset = extractObject(lastHtml, "preset");
+         const fact = extractObject(lastHtml, "fact");
+
+         return {
+            pageResponse,
+            html: lastHtml,
+            streets,
+            preset,
+            fact,
+         };
+      } catch (error) {
+         lastError = error;
+
+         console.log(`Попытка ${attempt}/${retries} получить данные ДТЭК не удалась:`, error.message);
+
+         if (attempt < retries) {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+         }
+      }
+   }
+
+   const title = lastHtml.match(/<title[^>]*>(.*?)<\/title>/i)?.[1] || "не найден";
+   const htmlLength = lastHtml.length;
+   const htmlStart = lastHtml.slice(0, 300);
+
+   throw new Error(
+      `ДТЭК не удалось получить корректные данные после ${retries} попыток.\n` +
+         `Последняя ошибка: ${lastError?.message}\n` +
+         `HTML length: ${htmlLength}\n` +
+         `Title: ${title}\n` +
+         `HTML начало: ${htmlStart}`
+   );
+}
+
 function jsonResponse(statusCode, data) {
    return {
       statusCode,
@@ -99,23 +155,25 @@ exports.handler = async function (event) {
          });
       }
 
-      const pageResponse = await fetch(PAGE_URL, {
-         headers: {
-            "User-Agent": "Mozilla/5.0",
-            Accept: "text/html,application/xhtml+xml",
-            "Accept-Language": "uk-UA,uk;q=0.9",
-         },
-      });
+      // const pageResponse = await fetch(PAGE_URL, {
+      //    headers: {
+      //       "User-Agent": "Mozilla/5.0",
+      //       Accept: "text/html,application/xhtml+xml",
+      //       "Accept-Language": "uk-UA,uk;q=0.9",
+      //    },
+      // });
 
-      if (!pageResponse.ok) {
-         throw new Error(`ДТЭК вернул HTTP ${pageResponse.status}`);
-      }
+      // if (!pageResponse.ok) {
+      //    throw new Error(`ДТЭК вернул HTTP ${pageResponse.status}`);
+      // }
 
-      const html = await pageResponse.text();
+      // const html = await pageResponse.text();
 
-      const streets = extractObject(html, "streets");
-      const preset = extractObject(html, "preset");
-      const fact = extractObject(html, "fact");
+      // const streets = extractObject(html, "streets");
+      // const preset = extractObject(html, "preset");
+      // const fact = extractObject(html, "fact");
+
+      const { pageResponse, html, streets, preset, fact } = await fetchDtekData(3);
 
       if (!streets[city]) {
          return jsonResponse(404, {
