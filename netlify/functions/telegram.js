@@ -380,7 +380,7 @@ async function updateDtekSchedule() {
 
    let nextsd = "";
    const currperiod = outagePeriods.find((period) => period.start < currentMinutes);
-   const nextorcurrent = nextsd;
+   let nextorcurrent = nextsd;
 
    if (nextsdPeriod) {
       const waitm = nextsdPeriod.start - currentMinutes;
