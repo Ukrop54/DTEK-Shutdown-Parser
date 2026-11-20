@@ -378,22 +378,18 @@ async function updateDtekSchedule() {
 
    const nextsdPeriod = outagePeriods.find((period) => period.start > currentMinutes);
 
-   let nextsd = "";
-   const currperiod = outagePeriods.find((period) => period.start < currentMinutes);
-   let nextorcurrent = nextsd;
+   let nextorcurrent = "Следующего отключения не ожидается";
+   const currperiod = outagePeriods.find((period) => currentMinutes >= period.start && currentMinutes < period.end);
 
-   if (nextsdPeriod) {
+   if (currperiod) {
+      const currSDduration = currentMinutes - currperiod.start;
+      const { h, m } = hmformatting(currSDduration);
+      nextorcurrent = `Света нет на протяжении: <b>${hmTextFormat(h, m)}</b>`;
+   } else if (nextsdPeriod) {
       const waitm = nextsdPeriod.start - currentMinutes;
       const { h, m } = hmformatting(waitm);
 
-      nextsd = `Следующее отключение через: <b>${hmTextFormat(h, m)}</b>`;
-   } else {
-      if (currperiod) {
-         const currSDduration = currentMinutes - currperiod.start;
-         const { h, m } = hmformatting(currSDduration);
-         nextorcurrent = `Света нет на протяжении: <b>${hmTextFormat(h, m)}</b>`;
-      }
-      nextsd = "Следующего отключения не ожидается";
+      nextorcurrent = `Следующее отключение через: <b>${hmTextFormat(h, m)}</b>`;
    }
 
    let periodsText = "";
