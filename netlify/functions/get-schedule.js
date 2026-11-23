@@ -102,10 +102,16 @@ async function fetchDtekData(retries = 3) {
       } catch (error) {
          lastError = error;
 
-         console.log(`Попытка ${attempt}/${retries} получить данные ДТЭК не удалась:`, error.message);
+         console.log(`Попытка ${attempt}/${retries}: ${error.message}`);
+
+         if (error.message.includes("HTTP 403")) {
+            throw error;
+         }
 
          if (attempt < retries) {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            const delay = attempt * 2000;
+
+            await new Promise((resolve) => setTimeout(resolve, delay));
          }
       }
    }
