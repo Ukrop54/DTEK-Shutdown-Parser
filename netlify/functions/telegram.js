@@ -1,5 +1,7 @@
 // const cId_var = "1352317933";
 
+const { cache } = require("react");
+
 // exports.handler = async (event) => {
 //    const BOT_TOKEN = process.env.BOT_TOKEN;
 
@@ -430,13 +432,18 @@ async function updateDtekSchedule() {
       currstatus = statusNames[currstatusraw].toLowerCase();
    }
 
+   const cacheWarning = data._cache?.stale
+      ? `\n\n<b>Данные из кэша</b>\nПоследнее успешное обновление: ${Math.round(data._cache.ageMs / 60000)} мин. назад`
+      : "";
+
    const statusText =
       `Статус отключений на ${weekday}, ${formattedDate}\n\n` +
       `Сейчас свет <b>${currstatus}</b>\n` +
       nextorcurrent +
       `\nВсего без света: <b>${hours} ч. ${minutes} мин.</b>\n\n` +
       `Отключения:\n${periodsText}\n\n` +
-      `Последнее обновление: ${data.updates.fact}`;
+      `Последнее обновление: ${data.updates.fact}` +
+      cacheWarning;
 
    const scheduleText =
       `График на ${weekday}, ${formattedDate}\n` +
@@ -466,7 +473,8 @@ async function updateDtekSchedule() {
             return `${formattedTime} — ${row.status}`;
          })
          .join("\n") +
-      `\n\nПоследнее обновление: ${data.updates.fact}`;
+      `\n\nПоследнее обновление: ${data.updates.fact}` +
+      cacheWarning;
 
    return {
       statusText,

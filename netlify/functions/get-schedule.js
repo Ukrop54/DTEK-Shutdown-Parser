@@ -1,5 +1,55 @@
 const PAGE_URL = "https://www.dtek-oem.com.ua/ua/shutdowns";
 const AJAX_URL = "https://www.dtek-oem.com.ua/ua/ajax";
+const CACHE_TTL = 5 * 60 * 1000;
+const CACHE_MAX_AGE = 120 * 60 * 1000;
+
+const CACHE_NAME = "dtek-schedule-cache";
+
+const crypto = require("crypto");
+
+function getCacheKey(city, street, house) {
+   const address = `${city}|${street}|${house}`;
+
+   return crypto.createHash("sha256").update(address).digest("hex");
+}
+
+async function getCachedSchedule(key) {
+   try {
+      const { getStore } = await import("@netlify/blobs");
+
+      const store = getStore(CACHE_NAME);
+
+      const cached = await store.get(key, {
+         type: "json",
+      });
+
+      return cached || null;
+   } catch (error) {
+      console.error("Ошибка чтения кэша:", error.message);
+
+      return null;
+   }
+}
+
+async function saveCachedSchedule(key, data) {
+   try {
+      const { getStore } = await import("@netlify/blobs");
+
+      const store = getStore(CACHE_NAME);
+
+      await store.set(
+         key,
+         JSON.stringify({
+            cachedAt: Date.now(),
+            data,
+         })
+      );
+
+      console.log("cached");
+   } catch (error) {
+      console.error("cache saving err:", error.message);
+   }
+}
 
 function extractObject(html, variableName) {
    const marker = `DisconSchedule.${variableName}`;
@@ -140,6 +190,8 @@ function jsonResponse(statusCode, data) {
 }
 
 exports.handler = async function (event) {
+   let cacheKey = null;
+   let cached = null;
    try {
       if (event.httpMethod !== "POST") {
          return jsonResponse(405, {
@@ -159,6 +211,27 @@ exports.handler = async function (event) {
             success: false,
             error: "Необходимо указать city, street и house",
          });
+      }
+
+      cached = await getCachedSchedule(cacheKey);
+
+      if (cached?.data && cached.cachedAt) {
+         const cacheAge = Date.now() - cached.cachedAt;
+
+         if (cacheAge < CACHE_TTL) {
+            console.log("recent cache usage");
+
+            return jsonResponse(200, {
+               ...cached.data,
+
+               _cache: {
+                  cached: true,
+                  stale: false,
+                  ageMs: cacheAge,
+                  savedAt: cached.cachedAt,
+               },
+            });
+         }
       }
 
       // const pageResponse = await fetch(PAGE_URL, {
@@ -299,7 +372,7 @@ exports.handler = async function (event) {
          throw new Error(`Расписание очереди ${queue} не найдено`);
       }
 
-      return jsonResponse(200, {
+      const responseData = {
          success: true,
 
          address: {
@@ -330,11 +403,45 @@ exports.handler = async function (event) {
 
          timeZone: preset.time_zone,
          timeType: preset.time_type,
+      };
+
+      await saveCachedSchedule(cacheKey, responseData);
+
+      return jsonResponse(200, {
+         ...responseData,
+
+         _cache: {
+            cached: false,
+            stale: false,
+            ageMs: 0,
+            savedAt: Date.now(),
+         },
       });
    } catch (error) {
+      console.error("Ошибка обновления ДТЭК:", error.message);
+
+      if (cached?.data && cached.cachedAt) {
+         const cacheAge = Date.now() - cached.cachedAt;
+
+         console.log(`cached schedule (${Math.round(cacheAge / 60000)} min ago)`);
+
+         return jsonResponse(200, {
+            ...cached.data,
+
+            _cache: {
+               cached: true,
+               stale: true,
+               ageMs: cacheAge,
+               savedAt: cached.cachedAt,
+               refreshError: error.message,
+            },
+         });
+      }
+
       return jsonResponse(500, {
          success: false,
          error: error.message,
+         cacheAvailable: false,
       });
    }
 };
