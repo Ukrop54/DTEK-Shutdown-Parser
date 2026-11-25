@@ -520,7 +520,6 @@ async function sendMenu(BOT_TOKEN, chatId) {
    return telegramRequest(BOT_TOKEN, "sendMessage", {
       chat_id: chatId,
       text: "Информация: ",
-      parse_mode: "HTML",
 
       reply_markup: {
          keyboard: [
@@ -584,6 +583,7 @@ exports.handler = async (event) => {
                await telegramRequest(BOT_TOKEN, "sendMessage", {
                   chat_id: chatId,
                   text: replyText,
+                  parse_mode: "HTML",
                });
             } catch (error) {
                console.error("Ошибка получения расписания:", error);
