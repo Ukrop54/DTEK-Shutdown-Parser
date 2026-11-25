@@ -436,9 +436,7 @@ async function updateDtekSchedule() {
       currstatus = statusNames[currstatusraw].toLowerCase();
    }
 
-   const cacheWarning = data._cache?.stale
-      ? `\n\n<b>Данные из кэша</b>\nПоследнее успешное обновление: ${Math.round(data._cache.ageMs / 60000)} мин. назад`
-      : "";
+   const cacheWarning = data._cache?.stale ? `\n\nПоследнее обновление кэша: ${Math.round(data._cache.ageMs / 60000)} мин. назад` : "";
 
    const statusText =
       `Статус отключений на ${weekday}, ${formattedDate}\n\n` +
@@ -446,7 +444,7 @@ async function updateDtekSchedule() {
       nextorcurrent +
       `\nВсего без света: <b>${hours} ч. ${minutes} мин.</b>\n\n` +
       `Отключения:\n${periodsText}\n\n` +
-      `Последнее обновление: ${esc(data.updates.fact)}\n` +
+      `Последнее обновление: ${esc(data.updates.fact)}` +
       cacheWarning;
 
    const scheduleText =
@@ -477,7 +475,7 @@ async function updateDtekSchedule() {
             return `${formattedTime} — ${row.status}`;
          })
          .join("\n") +
-      `\n\nПоследнее обновление: ${esc(data.updates.fact)}\n` +
+      `\n\nПоследнее обновление: ${esc(data.updates.fact)}` +
       cacheWarning;
 
    return {
