@@ -1,0 +1,23 @@
+{
+  "name": "dtek-tgparser",
+  "version": "1.0.0",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ukrop54/DTEK-Shutdown-Parser.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ukrop54/DTEK-Shutdown-Parser/issues"
+  },
+  "homepage": "https://github.com/Ukrop54/DTEK-Shutdown-Parser#readme",
+  "description": "",
+  "dependencies": {
+    "@netlify/blobs": "^11.1.11"
+  }
+}
