@@ -65,6 +65,10 @@ const { cache } = require("react");
 //    }
 // };
 
+function esc(text) {
+   return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 const DTEK_CONFIG = {
    city: "с-ще Мигаєве",
    street: "вул. Молодіжна",
@@ -442,13 +446,13 @@ async function updateDtekSchedule() {
       nextorcurrent +
       `\nВсего без света: <b>${hours} ч. ${minutes} мин.</b>\n\n` +
       `Отключения:\n${periodsText}\n\n` +
-      `Последнее обновление: ${data.updates.fact}\n` +
+      `Последнее обновление: ${esc(data.updates.fact)}\n` +
       cacheWarning;
 
    const scheduleText =
       `График на ${weekday}, ${formattedDate}\n` +
-      `Адрес: ${data.address.city}, ${data.address.street}, ${data.address.house}\n` +
-      `(${data.queue.name})\n\n` +
+      `Адрес: ${esc(data.address.city)}, ${esc(data.address.street)}, ${esc(data.address.house)}\n` +
+      `(${esc(data.queue.name)})\n\n` +
       // rows.map((row) => `${row.time} — ${row.status}`).join("\n") +
       rows
          .map((row) => {
@@ -473,7 +477,7 @@ async function updateDtekSchedule() {
             return `${formattedTime} — ${row.status}`;
          })
          .join("\n") +
-      `\n\nПоследнее обновление: ${data.updates.fact}\n` +
+      `\n\nПоследнее обновление: ${esc(data.updates.fact)}\n` +
       cacheWarning;
 
    return {
@@ -489,13 +493,23 @@ async function telegramRequest(BOT_TOKEN, method, data) {
          "Content-Type": "application/json",
       },
 
-      body: JSON.stringify({ ...data, parse_mode: "HTML" }),
+      body: JSON.stringify(data),
    });
    console.log(data);
 
    const result = await response.json();
 
    if (!response.ok || !result.ok) {
+      console.error("Telegram API error:", result.description);
+
+      if (result.description?.includes("can't parse entities")) {
+         const text = data.text || "";
+
+         console.error("Message length:", text.length);
+
+         console.error("HTML tags found:", text.match(/<\/?[a-z][^>]*>/gi));
+      }
+
       throw new Error(result.description || `Telegram API error: ${response.status}`);
    }
 
@@ -506,6 +520,7 @@ async function sendMenu(BOT_TOKEN, chatId) {
    return telegramRequest(BOT_TOKEN, "sendMessage", {
       chat_id: chatId,
       text: "Информация: ",
+      parse_mode: "HTML",
 
       reply_markup: {
          keyboard: [
@@ -575,7 +590,7 @@ exports.handler = async (event) => {
 
                await telegramRequest(BOT_TOKEN, "sendMessage", {
                   chat_id: chatId,
-                  text: `Ошибка ${error}`,
+                  text: `Ошибка. Беда с дтеком чи с данными. Повторись позже`,
                });
             }
          } else if (text.startsWith("Тане: ")) {
