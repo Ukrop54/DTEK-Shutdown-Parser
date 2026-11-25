@@ -216,7 +216,7 @@ async function updateDtekSchedule() {
       currstatus = statusNames[currstatusraw].toLowerCase();
    }
 
-   const cacheWarning = data._cache?.stale ? `\n\nПоследнее обновление кэша: ${Math.round(data._cache.ageMs / 60000)} мин. назад` : "";
+   const cacheWarning = data._cache?.stale ? `\nПоследнее обновление кэша: ${Math.round(data._cache.ageMs / 60000)} мин. назад` : "";
 
    const statusText =
       `Статус отключений на ${weekday}, ${formattedDate}\n\n` +
