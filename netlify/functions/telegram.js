@@ -442,7 +442,7 @@ async function updateDtekSchedule() {
       nextorcurrent +
       `\nВсего без света: <b>${hours} ч. ${minutes} мин.</b>\n\n` +
       `Отключения:\n${periodsText}\n\n` +
-      `Последнее обновление: ${data.updates.fact}` +
+      `Последнее обновление: ${data.updates.fact}\n` +
       cacheWarning;
 
    const scheduleText =
@@ -473,7 +473,7 @@ async function updateDtekSchedule() {
             return `${formattedTime} — ${row.status}`;
          })
          .join("\n") +
-      `\n\nПоследнее обновление: ${data.updates.fact}` +
+      `\n\nПоследнее обновление: ${data.updates.fact}\n` +
       cacheWarning;
 
    return {
