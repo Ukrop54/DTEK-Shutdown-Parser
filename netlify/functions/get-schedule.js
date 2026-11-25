@@ -6,6 +6,7 @@ const CACHE_MAX_AGE = 120 * 60 * 1000;
 const CACHE_NAME = "dtek-schedule-cache";
 
 const crypto = require("crypto");
+const { getStore, connectLambda } = require("@netlify/blobs");
 
 function getCacheKey(city, street, house) {
    const address = `${city}|${street}|${house}`;
@@ -15,8 +16,6 @@ function getCacheKey(city, street, house) {
 
 async function getCachedSchedule(key) {
    try {
-      const { getStore } = await import("@netlify/blobs");
-
       const store = getStore(CACHE_NAME);
 
       const cached = await store.get(key, {
@@ -33,7 +32,7 @@ async function getCachedSchedule(key) {
 
 async function saveCachedSchedule(key, data) {
    try {
-      const { getStore } = await import("@netlify/blobs");
+      // const { getStore } = await import("@netlify/blobs");
 
       const store = getStore(CACHE_NAME);
 
@@ -190,6 +189,8 @@ function jsonResponse(statusCode, data) {
 }
 
 exports.handler = async function (event) {
+   connectLambda(event);
+
    let cacheKey = null;
    let cached = null;
    try {
@@ -213,22 +214,24 @@ exports.handler = async function (event) {
          });
       }
 
+      cacheKey = getCacheKey(city, street, house);
       cached = await getCachedSchedule(cacheKey);
 
       if (cached?.data && cached.cachedAt) {
          const cacheAge = Date.now() - cached.cachedAt;
 
-         if (cacheAge < CACHE_TTL) {
-            console.log("recent cache usage");
+         if (cacheAge <= CACHE_MAX_AGE) {
+            console.log(`cached schedule (${Math.round(cacheAge / 60000)} min ago)`);
 
             return jsonResponse(200, {
                ...cached.data,
 
                _cache: {
                   cached: true,
-                  stale: false,
+                  stale: true,
                   ageMs: cacheAge,
                   savedAt: cached.cachedAt,
+                  refreshError: error.message,
                },
             });
          }
